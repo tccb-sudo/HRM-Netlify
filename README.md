@@ -45,7 +45,7 @@ Vì hệ thống có Netlify Function, không triển khai bằng cách chỉ k�
 
 ## 4. Kiểm tra
 
-1. Mở `https://TEN-SITE.netlify.app/api/apps-script` bằng trình duyệt: phải báo `Method not allowed` vì endpoint chỉ nhận POST.
+1. Mở `https://TEN-SITE.netlify.app/.netlify/functions/hrm-api` hoặc `https://TEN-SITE.netlify.app/api/apps-script` bằng trình duyệt: phải báo `Method not allowed` vì endpoint chỉ nhận POST.
 2. Mở trang chính và đăng nhập bằng CCCD.
 3. Kiểm tra Dashboard, đơn của tôi, duyệt đơn, GmailApp và import/export nhân viên.
 4. Trong Netlify → Logs → Functions, kiểm tra function `apps-script` nếu có lỗi.

@@ -20,7 +20,7 @@
 
 [[redirects]]
   from = "/api/apps-script"
-  to = "/.netlify/functions/apps-script"
+  to = "/.netlify/functions/hrm-api"
   status = 200
   force = true
 
