@@ -4,8 +4,8 @@ const JSON_HEADERS = {
   "X-Content-Type-Options": "nosniff"
 };
 
-const WORKER_VERSION = "HRM_CLOUDFLARE_WORKER_1.0.0";
-const ALLOWED_ACTIONS = new Set(["login","login-with-dept","me","logout","leave-request","leave-balance","leave-requests","approve","reject","hr-confirm","hr-return","create-return","hr-confirm-return","hr-reject-return","stats","employee-leave-info","employees","create-employee","update-employee","import-employees","organization-tree","save-organization","import-organizations","assign-role","delete-organization","revoke-role","delete-employee","admin-update-leave","admin-delete-leave","holiday-settings","save-holiday","delete-holiday","ping"]);
+const WORKER_VERSION = "HRM_CLOUDFLARE_WORKER_2.0.0";
+const ALLOWED_ACTIONS = new Set(["login","login-with-dept","me","logout","leave-request","leave-balance","leave-requests","approve","reject","hr-confirm","hr-return","create-return","hr-confirm-return","hr-reject-return","stats","employee-leave-info","employees","create-employee","update-employee","import-employees","organization-tree","save-organization","import-organizations","assign-role","delete-organization","revoke-role","delete-employee","admin-update-leave","admin-delete-leave","holiday-settings","save-holiday","delete-holiday","evaluation-context","evaluation-status","evaluation-submit","evaluation-history","evaluation-unit-data","evaluation-hr-data","evaluation-manager-save","evaluation-export","ping"]);
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {

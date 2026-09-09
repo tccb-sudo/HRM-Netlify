@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:       #1a56db;
+      --primary-dark:  #1040b0;
+      --primary-light: #e8f0fe;
+      --accent:        #f59e0b;
+      --accent-dark:   #d97706;
+      --success:       #10b981;
+      --danger:        #ef4444;
+      --navy:          #0f2557;
+      --sidebar-bg:    #0f2557;
+      --sidebar-w:     240px;
+      --gray-50:  #f8fafc; --gray-100: #f1f5f9; --gray-200: #e2e8f0;
+      --gray-400: #94a3b8; --gray-600: #475569; --gray-800: #1e293b;
+      --white: #ffffff;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+      --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+      --radius: 14px; --radius-sm: 8px; --tap-target: 48px;
+      --form-width: 860px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: var(--gray-50); color: var(--gray-800);
+      min-height: 100vh; -webkit-text-size-adjust: 100%;
+    }
+    .app-shell { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: var(--sidebar-w); flex-shrink: 0;
+      background: var(--sidebar-bg);
+      display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+      transition: transform .3s ease;
+    }
+    .sidebar-logo {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .sidebar-logo img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .sidebar-logo-text { flex: 1; min-width: 0; }
+    .sidebar-logo-text h1 { font-size: 0.72rem; font-weight: 800; color: white; line-height: 1.3; }
+    .sidebar-logo-text p  { font-size: 0.62rem; color: rgba(255,255,255,.6); margin-top: 2px; text-transform: uppercase; letter-spacing: .4px; }
+    .sidebar-user {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .s-avatar {
+      width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #5b21b6);
+      color: white; font-weight: 700; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .s-user-info { flex: 1; min-width: 0; }
+    .s-user-name { font-size: 13px; font-weight: 700; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .s-user-role { font-size: 11px; color: rgba(255,255,255,.55); margin-top: 1px; }
+    .sidebar-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      color: rgba(255,255,255,.75); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .18s; margin-bottom: 2px;
+      border: none; background: none; width: 100%; text-align: left;
+      font-family: inherit;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.1); color: white; }
+    .nav-item.active { background: var(--primary); color: white; font-weight: 700; }
+    .nav-item .nav-icon { font-size: 16px; flex-shrink: 0; width: 20px; text-align: center; }
+    .nav-item .nav-badge {
+      margin-left: auto; background: var(--danger);
+      color: white; font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 50px;
+    }
+    .sidebar-footer {
+      padding: 12px 8px;
+      border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .nav-logout {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      color: rgba(255,255,255,.6); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all .18s;
+      border: none; background: none; width: 100%; text-align: left;
+      font-family: inherit;
+    }
+    .nav-logout:hover { background: rgba(239,68,68,.15); color: #fca5a5; }
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 99;
+    }
+    .sidebar-overlay.show { display: block; }
+    .main-area {
+      margin-left: var(--sidebar-w);
+      flex: 1; display: flex; flex-direction: column; min-height: 100vh;
+    }
+    .main-area > .page-content,
+    .main-area > #form-page { flex: 1; }
+    .topbar {
+      background: var(--white); border-bottom: 1px solid var(--gray-200);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar-title { font-size: 1rem; font-weight: 700; color: var(--navy); }
+    .topbar-subtitle { font-size: 12px; color: var(--gray-400); font-weight: 500; }
+    .menu-toggle {
+      display: none; background: none; border: none; cursor: pointer;
+      padding: 8px; border-radius: 8px; color: var(--gray-600);
+      font-size: 20px; line-height: 1;
+    }
+    .menu-toggle:hover { background: var(--gray-100); }
+    .page-content { flex: 1; padding: 24px; max-width: 1200px; width: 100%; }
+    #form-page {
+      flex: 1;
+      padding: 20px 24px;
+      max-width: var(--form-width);
+      width: 100%;
+    }
+    .page { display: none; }
+    .page.active { display: block; animation: fadeUp .3s ease; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 28px 24px; border: 1px solid var(--gray-200); margin-bottom: 20px; }
+    .card-title { font-size: 1rem; font-weight: 800; color: var(--navy); text-align: center; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 22px; }
+    .login-wrap {
+      min-height: 100vh; background: linear-gradient(135deg, var(--navy) 0%, #1e40af 100%);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-card {
+      background: white; border-radius: 20px; padding: 40px 36px;
+      width: 100%; max-width: 460px; box-shadow: 0 24px 60px rgba(0,0,0,.25);
+    }
+    .login-logo { text-align: center; margin-bottom: 28px; }
+    .login-logo img { width: 80px; height: 80px; border-radius: 50%; box-shadow: 0 8px 24px rgba(15,37,87,.3); }
+    .login-logo h1 { font-size: 1rem; font-weight: 800; color: var(--navy); margin-top: 12px; line-height: 1.3; }
+    .login-logo p  { font-size: 0.75rem; color: var(--gray-400); margin-top: 4px; text-transform: uppercase; letter-spacing: .5px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+    input[type="password"], input[type="month"], select, textarea {
+      width: 100%; padding: 13px 14px; border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm); font-size: 16px; font-family: inherit;
+      color: var(--gray-800); background: var(--white);
+      transition: border-color .2s, box-shadow .2s; min-height: var(--tap-target);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,.12);
+    }
+    .btn { display: block; width: 100%; padding: 14px 20px; min-height: var(--tap-target); border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .2s; text-align: center; line-height: 1.2; }
+    .btn + .btn { margin-top: 10px; }
+    .btn:disabled { opacity: .6; cursor: not-allowed; transform: none !important; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,86,219,.35); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover:not(:disabled) { background: #059669; transform: translateY(-1px); }
+    .btn-gray    { background: var(--gray-200); color: var(--gray-600); }
+    .btn-gray:hover:not(:disabled)    { background: var(--gray-400); color: white; }
+    .btn-danger  { background: var(--danger); color: white; }
+    .btn-danger:hover:not(:disabled)  { background: #dc2626; }
+    .flex-gap { display: flex; gap: 10px; }
+    .flex-gap .btn { flex: 1; }
+    .info-box { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 20px; font-size: 14px; }
+    .info-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 6px; font-size: 14px; }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-label { color: var(--gray-600); font-weight: 500; min-width: 76px; flex-shrink: 0; }
+    .info-value { color: var(--gray-800); font-weight: 700; word-break: break-word; }
+    .status-msg { text-align: center; font-weight: 600; font-size: 13px; padding: 11px 14px; border-radius: var(--radius-sm); margin: 12px 0; min-height: 20px; }
+    .status-msg.checking { background: #eff6ff; color: var(--primary); }
+    .status-msg.done     { background: #fef2f2; color: var(--danger); }
+    .status-msg.ready    { background: #f0fdf4; color: var(--success); }
+    .status-msg.warn     { background: #fffbeb; color: var(--accent-dark); }
+    .badge { display: inline-block; padding: 4px 11px; border-radius: 50px; font-size: 12px; font-weight: 700; }
+    .badge-ap { background: #fef9c3; color: #854d0e; }
+    .badge-a  { background: #dcfce7; color: #166534; }
+    .badge-b  { background: #dbeafe; color: #1e40af; }
+    .badge-c  { background: #fee2e2; color: #991b1b; }
+    .divider { border: none; border-top: 1px solid var(--gray-200); margin: 20px 0; }
+    .section-header { background: linear-gradient(135deg, #fef2f2, #fff5f5); border-left: 5px solid var(--danger); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 13px 16px; margin: 28px 0 14px; font-size: 0.88rem; font-weight: 700; color: #b91c1c; line-height: 1.5; }
+    .radio-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .radio-option { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; min-height: 44px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit; color: var(--gray-600); background: var(--white); transition: border-color .15s, background .15s, color .15s; user-select: none; }
+    .radio-option:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+    .radio-option input[type="radio"] { width: auto; accent-color: var(--primary); flex-shrink: 0; }
+    .radio-option:has(input:checked) { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 700; }
+    .progress-wrap { margin-bottom: 26px; }
+    .progress-steps { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .progress-step  { font-size: 11px; font-weight: 600; color: var(--gray-400); text-align: center; flex: 1; }
+    .progress-step.active { color: var(--primary); }
+    .progress-step.done   { color: var(--success); }
+    .progress-bar-track { height: 6px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+    .progress-bar-fill  { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 99px; transition: width .5s ease; }
+    .success-icon { text-align: center; font-size: 70px; margin-bottom: 16px; animation: bounceIn .5s; }
+    @keyframes bounceIn { 0%{transform:scale(.5);opacity:0;} 70%{transform:scale(1.1);} 100%{transform:scale(1);opacity:1;} }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .result-item { background: var(--gray-50); border-radius: var(--radius-sm); padding: 16px; text-align: center; border: 1px solid var(--gray-200); }
+    .result-item .r-label { font-size: 11px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .result-item .r-val   { font-size: 2rem; font-weight: 800; margin-top: 4px; }
+    .result-item.score .r-val { color: var(--primary); }
+    .result-item.grade .r-val { color: var(--accent-dark); }
+    .history-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .history-table th { background: var(--navy); color: white; padding: 10px 12px; text-align: left; font-weight: 600; font-size: 12px; }
+    .history-table td { padding: 10px 12px; border-bottom: 1px solid var(--gray-100); vertical-align: middle; }
+    .history-table tr:hover td { background: var(--primary-light); }
+    .empty-state { text-align: center; padding: 30px 16px; color: var(--gray-400); font-size: 14px; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
+    .stat-card { background: var(--white); border-radius: var(--radius-sm); padding: 16px 12px; text-align: center; border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); }
+    .stat-card .stat-num   { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-card .stat-label { font-size: 10px; color: var(--gray-400); font-weight: 600; text-transform: uppercase; margin-top: 4px; letter-spacing: .3px; }
+    .stat-card.ap { border-top: 4px solid #f59e0b; } .stat-card.ap .stat-num { color: #854d0e; }
+    .stat-card.a  { border-top: 4px solid var(--success); } .stat-card.a  .stat-num { color: #166534; }
+    .stat-card.b  { border-top: 4px solid var(--primary); } .stat-card.b  .stat-num { color: #1e40af; }
+    .stat-card.c  { border-top: 4px solid var(--danger);  } .stat-card.c  .stat-num { color: #991b1b; }
+    .chart-row   { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .chart-label { font-size: 12px; font-weight: 700; width: 28px; text-align: right; flex-shrink: 0; }
+    .chart-track { flex: 1; height: 28px; background: var(--gray-100); border-radius: 6px; overflow: hidden; }
+    .chart-fill  { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; font-weight: 700; color: white; transition: width 1s ease; min-width: 4px; }
+    .chart-count { font-size: 12px; font-weight: 600; color: var(--gray-600); width: 64px; flex-shrink: 0; text-align: right; }
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--gray-200); -webkit-overflow-scrolling: touch; }
+    .mgr-table  { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+    #page-mgr-table .table-wrap { overflow: auto; max-height: calc(100vh - 180px); }
+    .mgr-table thead tr { background: linear-gradient(135deg, var(--navy), var(--primary)); color: white; position: sticky; top: 0; z-index: 3; }
+    .mgr-table th { padding: 10px 12px; font-weight: 600; text-align: center; }
+    .mgr-table td:first-child { font-weight: 600; text-align: left; background: var(--gray-50); position: sticky; left: 0; z-index: 2; min-width: 180px; box-shadow: 2px 0 5px rgba(0,0,0,.08); }
+    .mgr-table th:first-child { text-align: left; position: sticky; left: 0; z-index: 4; background: #0f2557; }
+    .mgr-table td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); text-align: center; vertical-align: middle; }
+    .mgr-table tr:hover td { background: var(--primary-light); }
+    .mgr-table tr:hover td:first-child { background: #dbeafe; }
+    .status-done    { display:inline-flex; align-items:center; gap:4px; background:#dcfce7; color:#166534; font-size:11px; font-weight:700; padding:4px 10px; border-radius:50px; white-space:nowrap; }
+    .status-pending { display:inline-flex; align-items:center; gap:4px; background:#fffbeb; color:#92400e; font-size:11px; font-weight:700; padding:4px 10px; border-radius:50px; white-space:nowrap; }
+    .row-done td { background: #f0fdf4 !important; }
+    .row-done td:first-child { background: #dcfce7 !important; }
+    .mgr-input      { width: 64px; padding: 6px; border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 13px; text-align: center; font-family: inherit; }
+    .mgr-input:focus { outline: none; border-color: var(--primary); }
+    .mgr-select     { padding: 6px; border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 13px; font-family: inherit; }
+    .mgr-note-input { width: 130px; padding: 6px; border: 1.5px solid var(--gray-200); border-radius: 6px; font-size: 13px; font-family: inherit; }
+    .violation-alert { display: none; background: #fef2f2; border: 2px solid var(--danger); border-radius: var(--radius-sm); padding: 18px; text-align: center; margin: 20px 0; }
+    .violation-alert p { color: #b91c1c; font-weight: 700; margin-bottom: 8px; }
+    .form-footer { background: var(--gray-50); border-radius: var(--radius-sm); border: 1px solid var(--gray-200); padding: 24px 20px; text-align: center; margin-top: 30px; }
+    .live-score { font-size: 2.5rem; font-weight: 800; color: var(--primary); }
+    .live-grade { font-size: 1rem; font-weight: 700; color: var(--gray-600); margin-bottom: 16px; }
+    .unit-section { margin-bottom: 24px; }
+    .unit-header { font-size: 13px; font-weight: 700; color: var(--navy); background: var(--primary-light); padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 10px; border-left: 4px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+    .unit-header .unit-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+    .unit-stat-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 50px; }
+    .usb-ap { background: #fef9c3; color: #854d0e; }
+    .usb-a  { background: #dcfce7; color: #166534; }
+    .usb-b  { background: #dbeafe; color: #1e40af; }
+    .usb-c  { background: #fee2e2; color: #991b1b; }
+    .hidden { display: none !important; }
+    .mt-24  { margin-top: 24px; }
+    .text-center { text-align: center; }
+    .q-label { font-weight: 600; font-size: 13px; color: var(--gray-800); margin-bottom: 8px; }
+    .q-note  { font-weight: 400; color: var(--gray-600); }
+    footer { background: var(--navy); color: rgba(255,255,255,.7); text-align: center; padding: 16px; font-size: 12px; line-height: 1.8; border-top: 3px solid var(--accent); }
+    footer b { color: white; }
+    @media (max-width: 900px) { :root { --sidebar-w: 220px; } .page-content { padding: 16px; } }
+    @media (max-width: 700px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-area { margin-left: 0; }
+      .menu-toggle { display: flex; align-items: center; justify-content: center; }
+      .topbar { padding: 0 14px; }
+      .page-content { padding: 14px 12px; }
+      .dashboard-grid { grid-template-columns: repeat(2,1fr); gap: 10px; }
+      .stat-card .stat-num { font-size: 1.7rem; }
+      .table-wrap { margin: 0 -12px; border-radius: 0; width: calc(100% + 24px); }
+      .unit-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .flex-gap { flex-direction: column; }
+      .result-item .r-val { font-size: 1.7rem; }
+      .live-score { font-size: 2rem; }
+    }
+    @media (max-width: 420px) {
+      .radio-option { font-size: 13px; padding: 9px 12px; }
+      .section-header { font-size: 0.82rem; padding: 11px 13px; }
+    }
+  </style>
+</head>
+<body>
+
+
+
+<div id="login-page">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">
+        <img src="https://lh3.googleusercontent.com/d/1O9wKINWz8OJdXAEOzr2q4Lk6OHdTS7Sl" alt="Logo">
+        <h1>PHIẾU TỰ ĐÁNH GIÁ VC-NLĐ <p>ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p></h1>
+        <p>Nhóm hành chính, hỗ trợ, phục vụ</p>
+      </div>
+      <div id="login-input-group">
+        <div class="form-group">
+          <label>Mã số / CCCD</label>
+          <input type="password" id="cccd_input" placeholder="Nhập mã số để tiếp tục..." autocomplete="new-password">
+        </div>
+        <button class="btn btn-primary" onclick="handleVerify()">XÁC NHẬN →</button>
+      </div>
+      <div style="text-align:center;margin-top:16px;font-size:12px;color:#94a3b8;">🔒 Bảo mật thông tin — An toàn dữ liệu</div>
+    </div>
+  </div>
+</div>
+
+<div id="app-shell" class="app-shell hidden">
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <img src="https://lh3.googleusercontent.com/d/1O9wKINWz8OJdXAEOzr2q4Lk6OHdTS7Sl" alt="Logo">
+      <div class="sidebar-logo-text">
+        <h1>PHIẾU TỰ ĐÁNH GIÁ VC-NLĐ</h1>
+        <p>ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</p>
+      </div>
+    </div>
+    <div class="sidebar-user" id="sidebar-user">
+      <div class="s-avatar" id="s-avatar-initials">?</div>
+      <div class="s-user-info">
+        <div class="s-user-name" id="s-user-name">--</div>
+        <div class="s-user-role" id="s-user-role">--</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+    <div class="sidebar-footer">
+      <button class="nav-logout" onclick="logout()">
+        <span style="font-size:16px;">←</span> Về Sổ tay HRM
+      </button>
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+        <div>
+          <div class="topbar-title" id="topbar-title">Trang chủ</div>
+          <div class="topbar-subtitle" id="topbar-subtitle">Phiếu tự đánh giá VC-NLĐ ĐẠI HỌC Y DƯỢC TP. HỒ CHÍ MINH</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-content" id="page-content">
+      <div id="page-home" class="page">
+        <div class="card">
+          <div class="card-title">✅ Thông tin VC-NLĐ</div>
+          <div class="info-box">
+            <div class="info-row"><span class="info-label">👤 Họ tên:</span><span class="info-value" id="dsp-name"></span></div>
+            <div class="info-row"><span class="info-label">🏢 Đơn vị:</span><span class="info-value" id="dsp-unit"></span></div>
+          </div>
+          <div class="form-group">
+            <label>📅 Chọn tháng đánh giá</label>
+            <input type="month" id="sel-month" onchange="checkStatus()">
+          </div>
+          <div id="status-msg" class="status-msg"></div>
+          <button id="btn-start" class="btn btn-success hidden" onclick="startEvaluation()">✅ BẮT ĐẦU ĐÁNH GIÁ</button>
+        </div>
+      </div>
+
+      <div id="page-success" class="page">
+        <div id="success-result" class="hidden">
+          <div class="card text-center" style="max-width:520px;margin:0 auto 20px;">
+            <div class="success-icon">🎉</div>
+            <div class="card-title" style="color:var(--success);">Đánh giá thành công!</div>
+            <p style="color:var(--gray-600);font-size:14px;margin-bottom:20px;">Dữ liệu đã được ghi nhận vào hệ thống.</p>
+            <div class="result-grid">
+              <div class="result-item score"><div class="r-label">Tổng điểm</div><div class="r-val" id="res-score">0</div></div>
+              <div class="result-item grade"><div class="r-label">Xếp loại tạm tính</div><div class="r-val" id="res-grade">--</div></div>
+            </div>
+            <p style="font-size:13px;color:var(--gray-400);font-style:italic;margin-bottom:20px;">Kết quả chính thức sau khi Trưởng đơn vị xác nhận.</p>
+            <button id="btn-back-success" class="btn btn-gray hidden" style="max-width:260px;margin:0 auto;" onclick="backFromSuccess()">← Quay lại</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="font-size:.85rem;margin-bottom:14px;">📋 Lịch sử đánh giá</div>
+          <div id="history-table-wrap"><div class="empty-state">⏳ Đang tải...</div></div>
+        </div>
+      </div>
+
+      <div id="page-mgr-eval" class="page">
+        <div class="card" style="max-width:520px;">
+          <div class="card-title">👥 Đánh giá VC-NLĐ</div>
+          <div class="form-group">
+            <label>📅 Chọn tháng</label>
+            <input type="month" id="sel-month-mgr" onchange="checkStatusForManager()">
+          </div>
+          <div id="status-msg-mgr" class="status-msg"></div>
+          <button class="btn btn-primary" onclick="goToManagerView()">👥 Chấm điểm cho VC-NLĐ</button>
+        </div>
+      </div>
+
+      <div id="page-mgr-table" class="page">
+        <div class="card">
+          <div style="margin-bottom:16px;">
+            <div style="font-size:14px;font-weight:700;color:var(--navy);">📋 Bảng chấm điểm VC-NLĐ</div>
+            <div style="font-size:12px;color:var(--gray-400);">Đơn vị: <span id="mgr-unit-display"></span> &nbsp;|&nbsp; Tháng: <span id="mgr-month-display"></span></div>
+          </div>
+          <div class="table-wrap">
+            <table class="mgr-table"><thead></thead><tbody id="staff-table-body"></tbody></table>
+          </div>
+          <div class="flex-gap mt-24" style="max-width:500px;margin:24px auto 0;">
+            <button class="btn btn-success" onclick="saveAllEvaluations()">💾 Lưu tất cả đánh giá</button>
+            <button class="btn btn-gray" onclick="showPage('page-mgr-eval')">← Quay lại</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-mgr-stats" class="page">
+        <div class="card">
+          <div class="form-group">
+            <label>📅 Chọn tháng thống kê</label>
+            <input type="month" id="sel-month-dashboard" onchange="loadDashboard()">
+          </div>
+          <div id="dashboard-content"><div class="empty-state">👆 Chọn tháng để xem thống kê</div></div>
+        </div>
+      </div>
+
+      <div id="page-mgr-history" class="page">
+        <div class="card">
+          <div class="card-title" style="font-size:.85rem;margin-bottom:14px;">🕐 Lịch sử đánh giá cá nhân</div>
+          <div id="mgr-history-wrap"><div class="empty-state">⏳ Đang tải...</div></div>
+        </div>
+      </div>
+
+      <div id="page-hr-eval" class="page">
+        <div class="card" style="max-width:520px;">
+          <div class="card-title">📝 Tự đánh giá cá nhân</div>
+          <div class="form-group">
+            <label>📅 Chọn tháng đánh giá</label>
+            <input type="month" id="sel-month-hr-eval" onchange="checkStatusHR()">
+          </div>
+          <div id="status-msg-hr-eval" class="status-msg"></div>
+          <button id="btn-hr-self-eval" class="btn btn-primary hidden" onclick="goToHREval()">✅ BẮT ĐẦU ĐÁNH GIÁ</button>
+        </div>
+      </div>
+
+      <div id="page-hr-dashboard" class="page">
+        <div class="card">
+          <div class="form-group">
+            <label>📅 Chọn tháng</label>
+            <input type="month" id="sel-month-hr" onchange="loadHRData()">
+          </div>
+          <div id="hr-status" class="status-msg"></div>
+          <div id="hr-dashboard-content"><div class="empty-state">👆 Chọn tháng để xem dashboard</div></div>
+        </div>
+      </div>
+
+      <div id="page-hr-detail" class="page">
+        <div id="hr-detail-content"><div class="empty-state">👆 Chọn tháng ở Dashboard trước</div></div>
+      </div>
+
+      <div id="page-hr-history" class="page">
+        <div class="card">
+          <div class="card-title" style="font-size:.85rem;margin-bottom:14px;">🕐 Lịch sử đánh giá cá nhân</div>
+          <div id="hr-history-wrap"><div class="empty-state">⏳ Đang tải...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="form-page" class="hidden">
+      <div class="card">
+        <form id="evaluationForm" autocomplete="off">
+          <input type="hidden" name="hoTen" id="hid-name">
+          <input type="hidden" name="unitName" id="hid-unit">
+          <input type="hidden" name="assessmentMonth" id="hid-month">
+
+          <div class="progress-wrap">
+            <div class="progress-steps">
+              <div class="progress-step active" id="ps1">1. Phẩm chất đạo đức</div>
+              <div class="progress-step" id="ps2">2. Tinh thần trách nhiệm</div>
+              <div class="progress-step" id="ps3">3. Kỷ luật, kỷ cương</div>
+              <div class="progress-step" id="ps4">4. Năng lực</div>
+            </div>
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:10%"></div></div>
+          </div>
+
+          <div style="text-align:left;margin-bottom:16px;">
+            <button type="button" class="btn btn-gray" style="width:auto;padding:8px 16px;min-height:36px;font-size:13px;" onclick="backFromForm()">← Quay lại</button>
+          </div>
+
+          <h2 style="text-align:center;color:var(--navy);font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Phiếu tự đánh giá</h2>
+          <div style="text-align:center;font-size:12px;color:var(--gray-400);margin-bottom:20px;"><span id="form-name-display"></span> &nbsp;|&nbsp; <span id="form-month-display"></span></div>
+          <hr class="divider">
+
+          <div class="section-header">1. Phẩm chất đạo đức (tiêu chí bắt buộc — vi phạm bất kỳ tiêu chí nào sẽ bị đánh giá không hoàn thành nhiệm vụ)</div>
+          <div class="q-label">1.1. Không tham ô, tham nhũng, tiêu cực, lãng phí, quan liêu, cơ hội, vụ lợi, hách dịch, cửa quyền, không có biểu hiện suy thoái về đạo đức, lối sống;</div>
+          <div class="radio-group" onchange="checkViolations()">
+            <label class="radio-option"><input type="radio" name="diem_1_1" value="0" required onclick="handleViPhamClick()"><span>Vi phạm</span></label>
+            <label class="radio-option"><input type="radio" name="diem_1_1" value="1" onclick="handleViPhamClick()"><span>Không vi phạm</span></label>
+          </div>
+          <div id="q1_2">
+            <div class="q-label" style="margin-top:16px;">1.2. Có lối sống trung thực, thẳng thắn, khiêm tốn, chân thành, trong sáng, khách quan, công tâm, tích cực đấu tranh tự phê bình và phê bình;</div>
+            <div class="radio-group" onchange="checkViolations()">
+              <label class="radio-option"><input type="radio" name="diem_1_2" value="0" required onclick="handleViPhamClick()"><span>Vi phạm</span></label>
+              <label class="radio-option"><input type="radio" name="diem_1_2" value="1" onclick="handleViPhamClick()"><span>Không vi phạm</span></label>
+            </div>
+          </div>
+          <div id="q1_3">
+            <div class="q-label" style="margin-top:16px;">1.3. Có tinh thần đoàn kết, xây dựng ĐHYD/đơn vị/tổ chức trong sạch, vững mạnh; không có biểu hiện chia rẽ, bè phái, cục bộ, lợi ích nhóm;</div>
+            <div class="radio-group" onchange="checkViolations()">
+              <label class="radio-option"><input type="radio" name="diem_1_3" value="0" required onclick="handleViPhamClick()"><span>Vi phạm</span></label>
+              <label class="radio-option"><input type="radio" name="diem_1_3" value="1" onclick="handleViPhamClick()"><span>Không vi phạm</span></label>
+            </div>
+          </div>
+          <div class="violation-alert" id="violationArea">
+            <p>⚠️ Bạn đã chọn Vi phạm</p>
+            <p style="font-size:13px;color:#b91c1c;margin-bottom:14px;">Hệ thống sẽ ghi nhận: <b>0 điểm — Loại C</b></p>
+            <button type="button" class="btn btn-danger" onclick="submitData(document.getElementById('evaluationForm'))">XÁC NHẬN GỬI (TRƯỜNG HỢP VI PHẠM)</button>
+          </div>
+
+          <div id="remainingAssessmentArea">
+            <div class="section-header">2. Tinh thần trách nhiệm, thái độ phục vụ (15 điểm)</div>
+            <div class="q-label">2.1. Có thái độ giao tiếp, hành vi chuẩn mực, đáp ứng yêu cầu theo quy định về văn hóa ứng xử của ĐHYD, đơn vị/tổ chức (3 điểm)<br><span class="q-note">Vi phạm được ghi nhận tại biên bản họp: 0 điểm</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_2_1" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_1" value="3"><span>3đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">2.2. Chủ động, trách nhiệm với nhiệm vụ được giao (+ dám nghĩ, dám làm, dám chịu trách nhiệm, dám đổi mới, sáng tạo, linh hoạt trong thực hiện nhiệm vụ đối với viên chức quản lý) (3 điểm)<br><span class="q-note">Nhắc nhở công khai: trừ 1đ/lần</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_2_2" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_2" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_2" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_2" value="3"><span>3đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">2.3. Phối hợp trong thực hiện nhiệm vụ; không đùn đẩy trách nhiệm, làm việc cầm chừng, qua loa, đại khái, kém hiệu quả (3 điểm)<br><span class="q-note">Nhắc nhở công khai: trừ 1đ/lần</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_2_3" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_3" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_3" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_3" value="3"><span>3đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">2.4. Có phương pháp làm việc khoa học, dân chủ, đúng nguyên tắc; không dao động trước mọi khó khăn, thách thức trong thực hiện nhiệm vụ được giao (3 điểm)<br><span class="q-note">Nhắc nhở công khai: trừ 1đ/lần</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_2_4" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_4" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_4" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_4" value="3"><span>3đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">2.5. Chủ động học tập; tham gia đào tạo, bồi dưỡng kiến thức, nâng cao kỹ năng, năng lực công tác đáp ứng yêu cầu của vị trí việc làm (3 điểm)<br><span class="q-note">Nhắc nhở công khai: trừ 1đ/lần</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_2_5" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_5" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_5" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_2_5" value="3"><span>3đ</span></label>
+            </div>
+            <div class="section-header">3. Ý thức kỷ luật, kỷ cương (15 điểm)</div>
+            <div class="q-label">3.1. Tuân thủ các quy chế, quy định, nội quy của ĐHYD, đơn vị/tổ chức (6 điểm)<br><span class="q-note">Vi phạm quy chế: trừ 0,5đ/lần | Đi trễ/về sớm ≥15 phút: trừ 0,5đ/lần | Nghỉ không phép: trừ 1đ/lần</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="0.5"><span>0.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="1.5"><span>1.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="2.5"><span>2.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="3"><span>3đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="3.5"><span>3.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="4"><span>4đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="4.5"><span>4.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="5"><span>5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="5.5"><span>5.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_1" value="6"><span>6đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">3.2. Chấp hành sự phân công của lãnh đạo ĐHYD, đơn vị/tổ chức (4 điểm)<br><span class="q-note">Không chấp hành: trừ 0,5đ/lần được nhắc nhở</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="0.5"><span>0.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="1.5"><span>1.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="2.5"><span>2.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="3"><span>3đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="3.5"><span>3.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_2" value="4"><span>4đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">3.3. Báo cáo đầy đủ, trung thực; cung cấp thông tin chính xác, khách quan về những nội dung liên quan đến việc thực hiện nhiệm vụ được giao và phối hợp triển khai công tác của ĐHYD/đơn vị/tổ chức với các tập thể, cá nhân khác khi được yêu cầu (5 điểm)<br><span class="q-note">Báo cáo không đầy đủ / sai lệch: trừ 0,5đ/lần được nhắc nhở</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="0.5"><span>0.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="1"><span>1đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="1.5"><span>1.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="2"><span>2đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="2.5"><span>2.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="3"><span>3đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="3.5"><span>3.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="4"><span>4đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="4.5"><span>4.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_3_3" value="5"><span>5đ</span></label>
+            </div>
+            <div class="section-header">4. Khả năng đáp ứng yêu cầu của cấp quản lý có thẩm quyền về số lượng, tiến độ, chất lượng nhiệm vụ thường xuyên và đột xuất (70 điểm)</div>
+            <div class="q-label">4.1. Khả năng đáp ứng yêu cầu về số lượng công việc, nhiệm vụ được giao (tối đa 20 điểm)<br><span class="q-note">Vượt 1-5%: 18.5đ | 6-10%: 19đ | 11-15%: 19.5đ | ≥16%: 20đ | Đủ 100%: 18đ | 96-&lt;100%: 17đ | 91-95%: 16đ | 86-90%: 15đ | 80-85%: 14đ | Còn lại: 0đ</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="14"><span>14đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="15"><span>15đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="16"><span>16đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="17"><span>17đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="18"><span>18đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="18.5"><span>18.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="19"><span>19đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="19.5"><span>19.5đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_1" value="20"><span>20đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">4.2. Khả năng đáp ứng yêu cầu về tiến độ công việc, nhiệm vụ được giao (tối đa 20 điểm)<br><span class="q-note">Vượt 1-5%: 17đ | 6-10%: 18đ | 11-15%: 19đ | ≥16%: 20đ | Đủ 100%: 16đ | 96-&lt;100%: 15đ | 91-95%: 14đ | 86-90%: 13đ | 80-85%: 12đ | Còn lại: 0đ</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="12"><span>12đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="13"><span>13đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="14"><span>14đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="15"><span>15đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="16"><span>16đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="17"><span>17đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="18"><span>18đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="19"><span>19đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_2" value="20"><span>20đ</span></label>
+            </div>
+            <div class="q-label" style="margin-top:16px;">4.3. Khả năng đáp ứng yêu cầu về chất lượng công việc, nhiệm vụ được giao (tối đa 30 điểm)<br><span class="q-note">Vượt 1-5%: 27đ | 6-10%: 28đ | 11-15%: 29đ | ≥16%: 30đ | Đủ 100%: 26đ | 96-&lt;100%: 25đ | 91-95%: 24đ | 86-90%: 23đ | 80-85%: 22đ | Còn lại: 0đ</span></div>
+            <div class="radio-group" onchange="calculateTotalScore()">
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="0"><span>0đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="22"><span>22đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="23"><span>23đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="24"><span>24đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="25"><span>25đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="26"><span>26đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="27"><span>27đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="28"><span>28đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="29"><span>29đ</span></label>
+              <label class="radio-option"><input type="radio" name="diem_4_3" value="30"><span>30đ</span></label>
+            </div>
+            <div class="form-footer">
+              <div class="live-score" id="totalScoreDisplay">0</div>
+              <div class="live-grade" id="ratingDisplay">Xếp loại: Chưa xác định</div>
+              <div id="extra-info-group" class="hidden" style="max-width:480px;margin:0 auto 16px;text-align:left;">
+                <label style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:6px;display:block;">📝 Nội dung công việc vượt định mức (bắt buộc khi A+):</label>
+                <textarea id="extraContent" name="extraContent" rows="3" style="width:100%;font-family:inherit;"
+                  oninput="this.style.border='';this.style.boxShadow='';const e=document.getElementById('extra-content-error');if(e)e.remove();"></textarea>
+              </div>
+              <button type="button" id="submitAssessmentBtn" class="btn btn-primary"
+                onclick="submitData(document.getElementById('evaluationForm'))"
+                style="width:auto;min-width:220px;margin:0 auto;display:inline-block;">
+                📤 Gửi đánh giá
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      <p><b>PHIẾU TỰ ĐÁNH GIÁ HIỆU QUẢ CÔNG VIỆC TRỰC TUYẾN</b></p>
+      <p>© 2026 Phòng Tổ chức cán bộ</p>
+    </footer>
+  </div>
+</div>
+
+<script src="/danh-gia/bridge.js"></script>
+<script>
+let currentUser = null;
+let hrData = null;
+
+const NAV_STAFF = [
+  { id:'page-home',    icon:'🏠', label:'Trang chủ' },
+  { id:'page-success', icon:'✅', label:'Kết quả đánh giá' },
+];
+
+const NAV_MANAGER = [
+  { id:'page-hr-eval',     icon:'✍️', label:'Tự đánh giá' },
+  { id:'page-mgr-eval',    icon:'📝', label:'Đánh giá VC-NLĐ' },
+  { id:'page-mgr-stats',   icon:'📊', label:'Thống kê' },
+  { id:'page-mgr-history', icon:'🕐', label:'Lịch sử' },
+];
+
+const NAV_HR = [
+  { id:'page-hr-eval',      icon:'📝', label:'Tự đánh giá' },
+  { id:'page-hr-dashboard', icon:'📊', label:'Dashboard' },
+  { id:'page-hr-detail',    icon:'📋', label:'Chi tiết đơn vị' },
+  { id:'page-hr-history',   icon:'🕐', label:'Lịch sử' },
+];
+
+const MANAGER_DEFAULT_PAGE = 'page-hr-eval';
+
+window.onload = function() { limitMonthInput(); evaluationPortalStart(); };
+
+function limitMonthInput() {
+  const now = new Date();
+  const max = now.getFullYear() + '-' + (now.getMonth()+1).toString().padStart(2,'0');
+  ['sel-month','sel-month-mgr','sel-month-dashboard','sel-month-hr','sel-month-hr-eval'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.setAttribute('max', max);
+  });
+}
+
+function toMonthFormat(yyyyMm) {
+  if (!yyyyMm) return '';
+  const p = yyyyMm.split('-');
+  return p.length === 2 ? p[1] + '-' + p[0] : yyyyMm;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+}
+
+function buildNav(navItems, defaultPage) {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '';
+  navItems.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-item';
+    btn.dataset.page = item.id;
+    btn.innerHTML = `<span class="nav-icon">${item.icon}</span><span>${item.label}</span>`;
+    btn.onclick = () => { showPage(item.id); closeSidebar(); };
+    nav.appendChild(btn);
+  });
+  if (defaultPage) showPage(defaultPage);
+}
+
+function showPage(pageId) {
+  document.getElementById('form-page').classList.add('hidden');
+  const pc = document.getElementById('page-content');
+  pc.style.display = 'block';
+  pc.style.maxWidth = (pageId === 'page-mgr-table') ? '100%' : '';
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(pageId);
+  if (el) { el.classList.add('active'); window.scrollTo(0,0); }
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === pageId);
+  });
+  const labels = {
+    'page-home':         { title:'Trang chủ', sub:'Thông tin & Đánh giá' },
+    'page-success':      { title:'Kết quả đánh giá', sub:'Đã ghi nhận vào hệ thống' },
+    'page-mgr-eval':     { title:'Đánh giá VC-NLĐ', sub:'Chấm điểm cho đơn vị' },
+    'page-mgr-table':    { title:'Bảng chấm điểm', sub:'Nhập điểm và xếp loại' },
+    'page-mgr-stats':    { title:'Thống kê', sub:'Kết quả theo tháng' },
+    'page-mgr-history':  { title:'Lịch sử', sub:'Đánh giá cá nhân' },
+    'page-hr-eval':      { title:'Tự đánh giá', sub:'Phiếu tự đánh giá cá nhân' },
+    'page-hr-dashboard': { title:'Dashboard', sub:'Toàn bộ kết quả' },
+    'page-hr-detail':    { title:'Chi tiết đơn vị', sub:'Danh sách VC-NLĐ theo đơn vị' },
+    'page-hr-history':   { title:'Lịch sử', sub:'Đánh giá cá nhân' },
+  };
+  const l = labels[pageId] || { title:'', sub:'' };
+  document.getElementById('topbar-title').textContent = l.title;
+  document.getElementById('topbar-subtitle').textContent = l.sub;
+}
+
+function showFormPage() {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-content').style.display = 'none';
+  document.getElementById('form-page').classList.remove('hidden');
+  document.getElementById('topbar-title').textContent = 'Phiếu tự đánh giá';
+  document.getElementById('topbar-subtitle').textContent = '';
+  window.scrollTo(0,0);
+}
+
+function showAppShell(role, name, donVi) {
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('app-shell').classList.remove('hidden');
+  const initials = name.trim().split(' ').pop().charAt(0).toUpperCase();
+  document.getElementById('s-avatar-initials').textContent = initials;
+  document.getElementById('s-user-name').textContent = name;
+  document.getElementById('s-user-role').textContent = role === 'hr' ? 'Tổ chức cán bộ' : role === 'manager' ? 'Trưởng đơn vị' : 'VC-NLĐ';
+}
+
+function updateNavBadge(pageId, count) {
+  const btn = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+  if (!btn) return;
+  const old = btn.querySelector('.nav-badge');
+  if (old) old.remove();
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'nav-badge';
+    badge.textContent = count;
+    btn.appendChild(badge);
+  }
+}
+
+function gradeBadge(g) {
+  const map = {'A+':'ap','A':'a','B':'b','C':'c'};
+  return `<span class="badge badge-${map[g]||'b'}">${g||'--'}</span>`;
+}
+
+function buildHistoryTable(data) {
+  if (!data || !data.length) return '<div class="empty-state">Chưa có lịch sử đánh giá nào.</div>';
+  return `<table class="history-table"><thead><tr><th>Tháng</th><th>Tổng điểm</th><th>Tự xếp loại</th><th>Trưởng ĐV xếp loại</th></tr></thead><tbody>
+    ${data.map(r=>`<tr><td>${r.thang}</td><td><b>${r.tongDiem}</b></td><td>${gradeBadge(r.xepLoai)}</td>
+    <td>${r.sepLoai?gradeBadge(r.sepLoai):'<span style="color:var(--gray-400);font-size:12px;">Chờ xác nhận</span>'}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+function loadUserHistory(hoTen) {
+  google.script.run.withSuccessHandler(function(data) {
+    document.getElementById('history-table-wrap').innerHTML = buildHistoryTable(data);
+  }).getUserHistory(hoTen);
+}
+function loadManagerHistory() {
+  if (!currentUser) return;
+  google.script.run.withSuccessHandler(function(data) {
+    document.getElementById('mgr-history-wrap').innerHTML = buildHistoryTable(data);
+  }).getUserHistory(currentUser.hoTen);
+}
+function loadHRHistory() {
+  if (!currentUser) return;
+  google.script.run.withSuccessHandler(function(data) {
+    document.getElementById('hr-history-wrap').innerHTML = buildHistoryTable(data);
+  }).getUserHistory(currentUser.hoTen);
+}
+
+function handleVerify() {
+  const cccd = document.getElementById('cccd_input').value.trim();
+  if (!cccd) return alert('Vui lòng nhập mã số!');
+  const btn = document.querySelector('#login-input-group .btn-primary');
+  const orig = btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='⏳ Đang xác nhận...'; btn.style.opacity='.7';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.found) {
+        if (res.multiUnit) { btn.disabled=false; btn.innerHTML=orig; btn.style.opacity='1'; showUnitPicker(res); return; }
+        afterLogin(res, btn, orig);
+      } else {
+        alert('Mã số không tồn tại!');
+        btn.disabled=false; btn.innerHTML=orig; btn.style.opacity='1';
+      }
+    })
+    .withFailureHandler(function(err) {
+      alert('Lỗi kết nối: ' + err);
+      btn.disabled=false; btn.innerHTML=orig; btn.style.opacity='1';
+    })
+    .verifyUser(cccd);
+}
+
+function afterLogin(res, btn, orig) {
+  currentUser = res;
+  if (res.isHR) {
+    showAppShell('hr', res.hoTen, res.donVi);
+    buildNav(NAV_HR, 'page-hr-eval');
+    loadHRHistory();
+  } else if (res.isManager) {
+    showAppShell('manager', res.hoTen, res.donVi);
+    buildNav(NAV_MANAGER, MANAGER_DEFAULT_PAGE);
+    loadManagerHistory();
+  } else {
+    showAppShell('staff', res.hoTen, res.donVi);
+    buildNav(NAV_STAFF, 'page-home');
+    document.getElementById('dsp-name').innerText = res.hoTen;
+    document.getElementById('dsp-unit').innerText = res.donVi;
+    loadUserHistory(res.hoTen);
+    setTimeout(() => document.getElementById('sel-month').focus(), 100);
+  }
+}
+
+function showUnitPicker(res) {
+  let opts = res.donViList.map((item,idx) =>
+    `<option value="${idx}">${item.donVi}${item.isManager?' (Trưởng đơn vị)':item.isHR?' (Tổ chức cán bộ)':''}</option>`).join('');
+  let modal = document.getElementById('unit-picker-modal');
+  if (!modal) {
+    modal = document.createElement('div'); modal.id='unit-picker-modal';
+    modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:99999;';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `<div style="background:white;border-radius:16px;padding:32px;width:90%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);">
+    <div style="font-size:40px;margin-bottom:12px;">🏢</div>
+    <h3 style="color:var(--navy);margin:0 0 6px;font-size:1.1rem;">Xin chào, <b>${res.hoTen}</b></h3>
+    <p style="color:var(--gray-600);font-size:13px;margin-bottom:18px;">Quý Thầy/Cô có nhiều vai trò.<br>Vui lòng chọn vai trò muốn thao tác:</p>
+    <select id="unit-picker-select" style="width:100%;padding:11px;border-radius:8px;border:1.5px solid var(--gray-200);font-size:14px;margin-bottom:16px;font-family:inherit;">${opts}</select>
+    <button onclick="confirmUnitPick(${JSON.stringify(res).replace(/"/g,'&quot;')})"
+      style="width:100%;padding:12px;background:var(--primary);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">XÁC NHẬN →</button>
+  </div>`;
+  modal.style.display='flex';
+}
+
+function confirmUnitPick(res) {
+  const idx = parseInt(document.getElementById('unit-picker-select').value);
+  const chosen = res.donViList[idx];
+  document.getElementById('unit-picker-modal').style.display='none';
+  const fakeRes = {found:true, hoTen:res.hoTen, donVi:chosen.donVi, isManager:chosen.isManager, isHR:chosen.isHR};
+  afterLogin(fakeRes, null, null);
+}
+
+function logout() {
+  location.href='/'; return;
+  currentUser = null; hrData = null;
+  document.getElementById('cccd_input').value = '';
+  const verifyBtn = document.querySelector('#login-input-group .btn-primary');
+  if (verifyBtn) { verifyBtn.disabled=false; verifyBtn.innerHTML='XÁC NHẬN →'; verifyBtn.style.opacity='1'; }
+  document.getElementById('status-msg').innerHTML = '';
+  document.getElementById('status-msg').className = 'status-msg';
+  document.getElementById('btn-start').classList.add('hidden');
+  document.getElementById('history-table-wrap').innerHTML = '<div class="empty-state">⏳ Đang tải...</div>';
+  document.getElementById('success-result').classList.add('hidden');
+  document.getElementById('sel-month').value = '';
+  document.getElementById('status-msg-mgr').innerHTML = '';
+  document.getElementById('status-msg-mgr').className = 'status-msg';
+  document.getElementById('sel-month-mgr').value = '';
+  document.getElementById('dashboard-content').innerHTML = '<div class="empty-state">👆 Chọn tháng để xem thống kê</div>';
+  document.getElementById('sel-month-dashboard').value = '';
+  document.getElementById('mgr-history-wrap').innerHTML = '<div class="empty-state">⏳ Đang tải lịch sử...</div>';
+  document.getElementById('staff-table-body').innerHTML = '';
+  document.getElementById('sel-month-hr').value = '';
+  document.getElementById('hr-status').innerHTML = '';
+  document.getElementById('hr-status').className = 'status-msg';
+  document.getElementById('hr-dashboard-content').innerHTML = '<div class="empty-state">👆 Chọn tháng để xem dashboard</div>';
+  document.getElementById('hr-detail-content').innerHTML = '<div class="empty-state">👆 Chọn tháng ở Dashboard trước</div>';
+  document.getElementById('hr-history-wrap').innerHTML = '<div class="empty-state">⏳ Đang tải lịch sử...</div>';
+  document.getElementById('sel-month-hr-eval').value = '';
+  document.getElementById('status-msg-hr-eval').innerHTML = '';
+  document.getElementById('status-msg-hr-eval').className = 'status-msg';
+  document.getElementById('btn-hr-self-eval').classList.add('hidden');
+  document.getElementById('evaluationForm').reset();
+  document.getElementById('app-shell').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
+  document.getElementById('sidebar-nav').innerHTML = '';
+  closeSidebar();
+}
+
+function checkStatus() {
+  const val = document.getElementById('sel-month').value;
+  const msg = document.getElementById('status-msg'), btn = document.getElementById('btn-start');
+  if (!val || !currentUser) return;
+  const sel=new Date(val+'-01'), now=new Date(), next=new Date(now.getFullYear(),now.getMonth()+1,1);
+  if (sel>=next) { msg.className='status-msg warn'; msg.innerHTML='⚠️ Không thể chọn tháng tương lai!'; document.getElementById('sel-month').value=''; btn.classList.add('hidden'); return; }
+  const fmt = toMonthFormat(val);
+  msg.className='status-msg checking'; msg.innerHTML='🔍 Đang kiểm tra...'; btn.classList.add('hidden');
+  google.script.run.withSuccessHandler(function(done) {
+    if (done) { msg.className='status-msg done'; msg.innerHTML=`❌ Bạn đã gửi đánh giá tháng ${fmt} rồi!`; btn.classList.add('hidden'); }
+    else if (!window.__evaluationWindow || !window.__evaluationWindow.is_open) { msg.className='status-msg warn'; msg.textContent='⚠️ '+(window.__evaluationWindow?window.__evaluationWindow.message:'Kỳ đánh giá hiện không mở.'); btn.classList.add('hidden'); }
+    else       { msg.className='status-msg ready'; msg.innerHTML=`✅ Bạn chưa đánh giá tháng ${fmt}. ${window.__evaluationWindow.message}`; btn.classList.remove('hidden'); }
+  }).checkDoubleEntry(currentUser.hoTen, fmt);
+}
+
+function checkStatusForManager() {
+  const val = document.getElementById('sel-month-mgr').value;
+  const msg = document.getElementById('status-msg-mgr');
+  if (!val || !currentUser) return;
+  const sel=new Date(val+'-01'), now=new Date(), next=new Date(now.getFullYear(),now.getMonth()+1,1);
+  if (sel>=next) { msg.className='status-msg warn'; msg.innerHTML='⚠️ Không thể chọn tháng tương lai!'; document.getElementById('sel-month-mgr').value=''; return; }
+  const fmt = toMonthFormat(val);
+  msg.className='status-msg checking'; msg.innerHTML='🔍 Đang kiểm tra...';
+  google.script.run.withSuccessHandler(function(done) {
+    if (done) { msg.className='status-msg done'; msg.innerHTML=`❌ Bạn đã gửi đánh giá tháng ${fmt} rồi!`; }
+    else       { msg.className='status-msg ready'; msg.innerHTML=`✅ Tháng ${fmt} — Mời bạn bắt đầu đánh giá VC-NLĐ.`; }
+  }).checkDoubleEntry(currentUser.hoTen, fmt);
+}
+
+function checkStatusHR() {
+  const val = document.getElementById('sel-month-hr-eval').value;
+  const msg = document.getElementById('status-msg-hr-eval');
+  const btn = document.getElementById('btn-hr-self-eval');
+  if (!val || !currentUser) return;
+  const sel=new Date(val+'-01'), now=new Date(), next=new Date(now.getFullYear(),now.getMonth()+1,1);
+  if (sel>=next) { msg.className='status-msg warn'; msg.innerHTML='⚠️ Không thể chọn tháng tương lai!'; document.getElementById('sel-month-hr-eval').value=''; btn.classList.add('hidden'); return; }
+  const fmt = toMonthFormat(val);
+  msg.className='status-msg checking'; msg.innerHTML='🔍 Đang kiểm tra...'; btn.classList.add('hidden');
+  google.script.run.withSuccessHandler(function(done) {
+    if (done) { msg.className='status-msg done'; msg.innerHTML=`❌ Bạn đã gửi đánh giá tháng ${fmt} rồi!`; btn.classList.add('hidden'); }
+    else if (!window.__evaluationWindow || !window.__evaluationWindow.is_open) { msg.className='status-msg warn'; msg.textContent='⚠️ '+(window.__evaluationWindow?window.__evaluationWindow.message:'Kỳ đánh giá hiện không mở.'); btn.classList.add('hidden'); }
+    else       { msg.className='status-msg ready'; msg.innerHTML=`✅ Bạn chưa đánh giá tháng ${fmt}. ${window.__evaluationWindow.message}`; btn.classList.remove('hidden'); }
+  }).checkDoubleEntry(currentUser.hoTen, fmt);
+}
+
+function _prepareForm(hoTen, donVi, val) {
+  document.getElementById('hid-name').value = hoTen;
+  document.getElementById('hid-unit').value = donVi;
+  document.getElementById('hid-month').value = toMonthFormat(val);
+  document.getElementById('form-name-display').textContent = hoTen;
+  document.getElementById('form-month-display').textContent = val.split('-').reverse().join('/');
+  const btn = document.getElementById('submitAssessmentBtn');
+  btn.disabled=false; btn.innerHTML='📤 Gửi đánh giá'; btn.style.opacity='1';
+  updateProgress(1); showFormPage();
+}
+function startEvaluation() {
+  const val = document.getElementById('sel-month').value;
+  if (!val) return alert('Vui lòng chọn tháng!');
+  _prepareForm(document.getElementById('dsp-name').innerText, document.getElementById('dsp-unit').innerText, val);
+}
+function goToHREval() {
+  const val = document.getElementById('sel-month-hr-eval').value;
+  if (!val) return alert('Vui lòng chọn tháng!');
+  _prepareForm(currentUser.hoTen, currentUser.donVi, val);
+}
+
+function backFromForm() {
+  if (!confirm('Bạn có chắc muốn thoát? Dữ liệu đang nhập sẽ bị mất.')) return;
+  _resetForm();
+  if (currentUser && currentUser.isHR) showPage('page-hr-eval');
+  else if (currentUser && currentUser.isManager) showPage(MANAGER_DEFAULT_PAGE);
+  else showPage('page-home');
+}
+
+function backFromSuccess() {
+  _resetForm();
+  if (currentUser && currentUser.isHR) showPage('page-hr-eval');
+  else if (currentUser && currentUser.isManager) showPage(MANAGER_DEFAULT_PAGE);
+}
+
+function _resetForm() {
+  document.getElementById('evaluationForm').reset();
+  document.getElementById('violationArea').style.display = 'none';
+  document.getElementById('remainingAssessmentArea').style.display = 'block';
+  document.getElementById('q1_2').style.display = 'block';
+  document.getElementById('q1_3').style.display = 'block';
+  document.getElementById('totalScoreDisplay').textContent = '0';
+  document.getElementById('ratingDisplay').textContent = 'Xếp loại: Chưa xác định';
+  document.getElementById('extra-info-group').classList.add('hidden');
+  updateProgress(1);
+}
+
+function updateProgress(step) {
+  const pcts = [10,35,65,90,100];
+  document.getElementById('progress-fill').style.width = pcts[step-1]+'%';
+  ['ps1','ps2','ps3','ps4'].forEach((id,i) => {
+    const el=document.getElementById(id); el.classList.remove('active','done');
+    if (i+1<step) el.classList.add('done'); else if (i+1===step) el.classList.add('active');
+  });
+}
+
+function handleViPhamClick() {
+  const v11=document.querySelector('input[name="diem_1_1"]:checked')?.value;
+  const v12=document.querySelector('input[name="diem_1_2"]:checked')?.value;
+  const v13=document.querySelector('input[name="diem_1_3"]:checked')?.value;
+  const isVP = v11==='0'||v12==='0'||v13==='0';
+  document.querySelectorAll('#evaluationForm input[type="radio"]').forEach(inp => { if (!inp.name.startsWith('diem_1_')) inp.required=!isVP; });
+}
+function checkViolations() {
+  const v11=document.querySelector('input[name="diem_1_1"]:checked')?.value;
+  const v12=document.querySelector('input[name="diem_1_2"]:checked')?.value;
+  const v13=document.querySelector('input[name="diem_1_3"]:checked')?.value;
+  const isVP = v11==='0'||v12==='0'||v13==='0';
+  document.getElementById('violationArea').style.display = isVP ? 'block' : 'none';
+  document.getElementById('remainingAssessmentArea').style.display = isVP ? 'none' : 'block';
+  document.getElementById('q1_2').style.display = (isVP && v11==='0') ? 'none' : 'block';
+  document.getElementById('q1_3').style.display = (isVP && v11==='0') ? 'none' : 'block';
+  document.querySelectorAll('#evaluationForm input[type="radio"]').forEach(inp => { if (!inp.name.startsWith('diem_1_')) inp.required=!isVP; });
+}
+
+function calculateTotalScore() {
+  let total=0;
+  document.querySelectorAll('input[name^="diem_"]:checked').forEach(inp => { if (!inp.name.startsWith('diem_1_')) total+=parseFloat(inp.value)||0; });
+  document.getElementById('totalScoreDisplay').textContent = total.toFixed(1);
+  const g = total>90?'A+':total>=80?'A':total>=65?'B':'C';
+  document.getElementById('ratingDisplay').textContent = 'Xếp loại: ' + g;
+  const eg=document.getElementById('extra-info-group'), ei=document.getElementById('extraContent');
+  if (g==='A+') { eg.classList.remove('hidden'); ei.setAttribute('required','true'); }
+  else           { eg.classList.add('hidden'); ei.removeAttribute('required'); ei.value=''; }
+  const a2=!!document.querySelector('input[name^="diem_2"]:checked');
+  const a3=!!document.querySelector('input[name^="diem_3"]:checked');
+  const a4=!!document.querySelector('input[name^="diem_4"]:checked');
+  updateProgress(a4?4:a3?3:a2?2:1);
+}
+
+function submitData(form) {
+  const isViPham = document.getElementById('violationArea').style.display === 'block';
+  if (!isViPham) {
+    const required = [
+      ['diem_1_1','Mục 1.1'],['diem_1_2','Mục 1.2'],['diem_1_3','Mục 1.3'],
+      ['diem_2_1','Mục 2.1'],['diem_2_2','Mục 2.2'],['diem_2_3','Mục 2.3'],['diem_2_4','Mục 2.4'],['diem_2_5','Mục 2.5'],
+      ['diem_3_1','Mục 3.1'],['diem_3_2','Mục 3.2'],['diem_3_3','Mục 3.3'],
+      ['diem_4_1','Mục 4.1'],['diem_4_2','Mục 4.2'],['diem_4_3','Mục 4.3'],
+    ];
+    for (const [name, label] of required) {
+      if (!document.querySelector(`input[name="${name}"]:checked`)) {
+        const first = document.querySelector(`input[name="${name}"]`);
+        if (first) {
+          const grp = first.closest('.radio-group');
+          if (grp) { grp.style.outline='2px solid var(--danger)'; grp.style.borderRadius='8px'; grp.style.padding='8px'; setTimeout(() => { grp.style.outline=''; grp.style.padding=''; }, 3000); }
+          first.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+        alert(`⚠️ Vui lòng chọn điểm cho ${label} trước khi gửi!`); return;
+      }
+    }
+    const rating = document.getElementById('ratingDisplay').textContent;
+    const extraContent = document.getElementById('extraContent');
+    if (rating.includes('A+') && extraContent.value.trim()==='') {
+      extraContent.focus(); extraContent.style.border='2px solid var(--danger)'; extraContent.style.boxShadow='0 0 0 3px rgba(239,68,68,.15)';
+      let err = document.getElementById('extra-content-error');
+      if (!err) { err=document.createElement('p'); err.id='extra-content-error'; err.style.cssText='color:var(--danger);font-size:13px;font-weight:600;margin-top:6px;'; extraContent.parentNode.insertBefore(err, extraContent.nextSibling); }
+      err.textContent = '⚠️ Vui lòng nhập nội dung công việc vượt định mức!';
+      extraContent.scrollIntoView({ behavior:'smooth', block:'center' }); return;
+    }
+    const err = document.getElementById('extra-content-error');
+    if (err) err.remove();
+    if (extraContent) { extraContent.style.border=''; extraContent.style.boxShadow=''; }
+  }
+  const btnN = document.getElementById('submitAssessmentBtn');
+  const btnV = document.querySelector('#violationArea .btn-danger');
+  if (btnN) { btnN.disabled=true; btnN.innerHTML='⏳ Đang gửi...'; btnN.style.opacity='.7'; }
+  if (btnV) { btnV.disabled=true; btnV.innerHTML='⏳ Đang gửi...'; btnV.style.opacity='.7'; }
+  const resetBtns = () => {
+    if (btnN) { btnN.disabled=false; btnN.innerHTML='📤 Gửi đánh giá'; btnN.style.opacity='1'; }
+    if (btnV) { btnV.disabled=false; btnV.innerHTML='XÁC NHẬN GỬI (TRƯỜNG HỢP VI PHẠM)'; btnV.style.opacity='1'; }
+  };
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.success) {
+        document.getElementById('res-score').textContent = res.score;
+        document.getElementById('res-grade').textContent = res.grade;
+        const backBtn = document.getElementById('btn-back-success');
+        if (backBtn) backBtn.style.display = (currentUser&&(currentUser.isHR||currentUser.isManager)) ? 'block' : 'none';
+        document.getElementById('success-result').classList.remove('hidden');
+        loadUserHistory(currentUser.hoTen);
+        showPage('page-success');
+      } else { alert('Lỗi: '+res.message); resetBtns(); }
+    })
+    .withFailureHandler(function(err) { alert('Lỗi đường truyền: '+err); resetBtns(); })
+    .saveData(form);
+}
+
+function goToManagerView() {
+  const val = document.getElementById('sel-month-mgr').value;
+  if (!val) return alert('Vui lòng chọn tháng!');
+  const fmt = toMonthFormat(val);
+  document.getElementById('mgr-unit-display').textContent = currentUser.donVi;
+  document.getElementById('mgr-month-display').textContent = fmt;
+  showPage('page-mgr-table');
+  google.script.run.withSuccessHandler(function(data) {
+    const thead=document.querySelector('#page-mgr-table table thead');
+    const tbody=document.getElementById('staff-table-body');
+    thead.innerHTML=`<tr>
+      <th style="min-width:180px;text-align:left;">Họ và Tên</th>
+      <th>1.1</th><th>1.2</th><th>1.3</th><th>2.1</th><th>2.2</th><th>2.3</th><th>2.4</th><th>2.5</th>
+      <th>3.1</th><th>3.2</th><th>3.3</th><th>4.1</th><th>4.2</th><th>4.3</th>
+      <th>Tổng</th><th>Xếp loại</th><th>Ghi chú A+</th>
+      <th style="background:#92400e">Điểm TĐV</th><th style="background:#92400e">TĐV xếp loại</th><th style="background:#92400e">Ghi chú</th>
+      <th style="background:#166534;min-width:120px">Trạng thái</th>
+    </tr>`;
+    tbody.innerHTML='';
+    if (!data||!data.length) { tbody.innerHTML='<tr><td colspan="22" style="text-align:center;padding:24px;color:var(--gray-400);">Không có dữ liệu tháng này.</td></tr>'; return; }
+    const pendingCount = data.filter(item => !item.sepLoai).length;
+    updateNavBadge('page-mgr-eval', pendingCount);
+    data.forEach(item => {
+      const isDone = !!item.sepLoai;
+      let row=`<tr class="${isDone?'row-done':''}"><td>${item.hoTen}</td>`;
+      item.chiTiet.forEach((v,i) => { row+=`<td style="${i>=14?'background:var(--gray-50);':''}">${v||''}</td>`; });
+      row+=`<td><input type="number" class="mgr-input" data-row="${item.rowId}" value="${item.sepDiem||''}" oninput="autoGrade(this)" min="0" max="100"></td>
+        <td><select class="mgr-select" data-row="${item.rowId}">
+          <option value="">--</option>
+          <option value="A+" ${item.sepLoai==='A+'?'selected':''}>A+</option>
+          <option value="A"  ${item.sepLoai==='A' ?'selected':''}>A</option>
+          <option value="B"  ${item.sepLoai==='B' ?'selected':''}>B</option>
+          <option value="C"  ${item.sepLoai==='C' ?'selected':''}>C</option>
+        </select></td>
+        <td><input type="text" class="mgr-note-input" data-row="${item.rowId}" value="${item.sepGhiChu||''}"></td>
+        <td style="text-align:center;">
+          ${isDone
+            ? `<span class="status-done">✅ Đã đánh giá</span>`
+            : `<span class="status-pending">⏳ Chờ đánh giá</span>`
+          }
+        </td>
+      </tr>`;
+      tbody.innerHTML+=row;
+    });
+  }).getStaffData(currentUser.donVi, fmt);
+}
+
+function autoGrade(el) {
+  const s=parseFloat(el.value), sel=el.closest('tr').querySelector('.mgr-select');
+  if (isNaN(s)||el.value==='') { sel.value=''; return; }
+  sel.value = s>90?'A+':s>=80?'A':s>=65?'B':'C';
+}
+
+function saveAllEvaluations() {
+  const list=[]; let count=0;
+  const btn=document.querySelector('button[onclick="saveAllEvaluations()"]'), orig=btn.innerHTML;
+  btn.innerHTML='⏳ Đang lưu...'; btn.disabled=true;
+  document.querySelectorAll('#staff-table-body tr').forEach(row => {
+    const score=row.querySelector('.mgr-input'), grade=row.querySelector('.mgr-select'), note=row.querySelector('.mgr-note-input');
+    if (score&&(score.value!==''||grade.value!=='')) { list.push({rowId:score.getAttribute('data-row'), sepDiem:score.value, sepLoai:grade.value, sepGhiChu:note.value}); count++; }
+  });
+  if (!list.length) { alert('Vui lòng nhập đánh giá trước khi lưu!'); btn.innerHTML=orig; btn.disabled=false; return; }
+  google.script.run
+    .withSuccessHandler(function(res) {
+      if (res.success) {
+        alert(`✅ Đã lưu đánh giá cho ${count} VC-NLĐ.\n\nCảm ơn Trưởng đơn vị!`);
+        updateNavBadge('page-mgr-eval', 0);
+        showPage('page-mgr-eval');
+      }
+      else alert('Lỗi: '+res.message);
+      btn.innerHTML=orig; btn.disabled=false;
+    })
+    .withFailureHandler(function(err) { alert('Lỗi kết nối: '+err); btn.innerHTML=orig; btn.disabled=false; })
+    .updateManagerEvaluations(list);
+}
+
+function loadDashboard() {
+  const val = document.getElementById('sel-month-dashboard').value;
+  if (!val || !currentUser) return;
+  const fmt = toMonthFormat(val);
+  const content = document.getElementById('dashboard-content');
+  content.innerHTML = '<div class="empty-state">⏳ Đang tải...</div>';
+  google.script.run.withSuccessHandler(function(data) {
+    if (!data || !data.length) { content.innerHTML=`<div class="empty-state">Không có dữ liệu tháng ${fmt}</div>`; return; }
+    const cnt = {'A+':0,'A':0,'B':0,'C':0, total:data.length};
+    data.forEach(r => { if (cnt[r.xepLoai]!==undefined) cnt[r.xepLoai]++; });
+    const pct = g => cnt.total>0 ? Math.round(cnt[g]/cnt.total*100) : 0;
+    content.innerHTML = `
+      <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:12px;">📊 Tháng ${fmt} — ${currentUser.donVi} — Tổng: <b>${cnt.total}</b> VC-NLĐ đã nộp</div>
+      <div class="dashboard-grid">
+        <div class="stat-card ap"><div class="stat-num">${cnt['A+']}</div><div class="stat-label">Loại A+</div></div>
+        <div class="stat-card a"><div class="stat-num">${cnt['A']}</div><div class="stat-label">Loại A</div></div>
+        <div class="stat-card b"><div class="stat-num">${cnt['B']}</div><div class="stat-label">Loại B</div></div>
+        <div class="stat-card c"><div class="stat-num">${cnt['C']}</div><div class="stat-label">Loại C</div></div>
+      </div>
+      ${[['A+','#f59e0b'],['A','#10b981'],['B','#1a56db'],['C','#ef4444']].map(([g,c])=>`
+      <div class="chart-row">
+        <div class="chart-label" style="color:${c}">${g}</div>
+        <div class="chart-track"><div class="chart-fill" style="width:${pct(g)}%;background:${c};">${pct(g)>8?pct(g)+'%':''}</div></div>
+        <div class="chart-count">${cnt[g]} người</div>
+      </div>`).join('')}
+      <div style="margin-top:20px;">
+        <table class="history-table"><thead><tr><th>Họ và tên</th><th>Tổng điểm</th><th>Tự xếp loại</th><th>Trưởng ĐV xếp loại</th></tr></thead><tbody>
+          ${data.map(r=>`<tr><td>${r.hoTen}</td><td>${r.tongDiem}</td><td>${gradeBadge(r.xepLoai)}</td>
+          <td>${r.sepLoai?gradeBadge(r.sepLoai):'<span style="color:var(--gray-400);font-size:12px;">Chờ</span>'}</td></tr>`).join('')}
+        </tbody></table>
+      </div>`;
+  }).getStaffData(currentUser.donVi, fmt);
+}
+
+function loadHRData() {
+  const val = document.getElementById('sel-month-hr').value;
+  if (!val) return;
+  const fmt = toMonthFormat(val);
+  const status = document.getElementById('hr-status');
+  status.className = 'status-msg checking';
+  status.innerHTML = '⏳ Đang tải dữ liệu tháng ' + fmt + '...';
+  document.getElementById('hr-dashboard-content').innerHTML = '<div class="empty-state">⏳ Đang tải...</div>';
+  document.getElementById('hr-detail-content').innerHTML = '<div class="empty-state">⏳ Đang tải...</div>';
+  google.script.run.withSuccessHandler(function(data) {
+    hrData = data;
+    if (!data || !data.length) {
+      status.className = 'status-msg warn';
+      status.innerHTML = '⚠️ Không có dữ liệu tháng ' + fmt;
+      document.getElementById('hr-dashboard-content').innerHTML = `<div class="empty-state">Không có dữ liệu tháng ${fmt}</div>`;
+      document.getElementById('hr-detail-content').innerHTML = `<div class="empty-state">Không có dữ liệu tháng ${fmt}</div>`;
+      return;
+    }
+    status.className = 'status-msg ready';
+    status.innerHTML = `✅ Tháng ${fmt} — Tổng <b>${data.length}</b> VC-NLĐ đã nộp`;
+    renderHRDashboard(data, fmt);
+    renderHRDetail(data);
+  }).getAllStaffData(fmt);
+}
+
+function renderHRDashboard(data, fmt) {
+  const cnt = {'A+':0,'A':0,'B':0,'C':0, total:data.length};
+  const cntSep = {'A+':0,'A':0,'B':0,'C':0};
+  data.forEach(r => {
+    if (cnt[r.xepLoai]!==undefined) cnt[r.xepLoai]++;
+    if (cntSep[r.sepLoai]!==undefined) cntSep[r.sepLoai]++;
+  });
+  const pct  = g => cnt.total>0 ? Math.round(cnt[g]/cnt.total*100) : 0;
+  const pctS = g => cnt.total>0 ? Math.round(cntSep[g]/cnt.total*100) : 0;
+  const pending = data.filter(r => !r.sepLoai).length;
+  const byUnit = {};
+  data.forEach(r => { if (!byUnit[r.donVi]) byUnit[r.donVi]=[]; byUnit[r.donVi].push(r); });
+  const unitCount = Object.keys(byUnit).length;
+  document.getElementById('hr-dashboard-content').innerHTML = `
+    <div style="font-size:13px;font-weight:600;color:var(--gray-600);margin-bottom:14px;">
+      📊 Tháng ${fmt} &nbsp;·&nbsp; <b>${unitCount}</b> đơn vị &nbsp;·&nbsp; <b>${cnt.total}</b> VC-NLĐ đã nộp
+      ${pending>0?`&nbsp;·&nbsp; <span style="color:var(--accent-dark);">⏳ ${pending} chờ TĐV xác nhận</span>`:''}
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Tự xếp loại</div>
+    <div class="dashboard-grid" style="margin-bottom:16px;">
+      <div class="stat-card ap"><div class="stat-num">${cnt['A+']}</div><div class="stat-label">Loại A+</div></div>
+      <div class="stat-card a"><div class="stat-num">${cnt['A']}</div><div class="stat-label">Loại A</div></div>
+      <div class="stat-card b"><div class="stat-num">${cnt['B']}</div><div class="stat-label">Loại B</div></div>
+      <div class="stat-card c"><div class="stat-num">${cnt['C']}</div><div class="stat-label">Loại C</div></div>
+    </div>
+    ${[['A+','#f59e0b'],['A','#10b981'],['B','#1a56db'],['C','#ef4444']].map(([g,c])=>`
+    <div class="chart-row">
+      <div class="chart-label" style="color:${c}">${g}</div>
+      <div class="chart-track"><div class="chart-fill" style="width:${pct(g)}%;background:${c};">${pct(g)>8?pct(g)+'%':''}</div></div>
+      <div class="chart-count">${cnt[g]} người</div>
+    </div>`).join('')}
+    <hr class="divider">
+    <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Trưởng ĐV xếp loại</div>
+    <div class="dashboard-grid" style="margin-bottom:16px;">
+      <div class="stat-card ap"><div class="stat-num">${cntSep['A+']}</div><div class="stat-label">Loại A+</div></div>
+      <div class="stat-card a"><div class="stat-num">${cntSep['A']}</div><div class="stat-label">Loại A</div></div>
+      <div class="stat-card b"><div class="stat-num">${cntSep['B']}</div><div class="stat-label">Loại B</div></div>
+      <div class="stat-card c"><div class="stat-num">${cntSep['C']}</div><div class="stat-label">Loại C</div></div>
+    </div>
+    ${[['A+','#f59e0b'],['A','#10b981'],['B','#1a56db'],['C','#ef4444']].map(([g,c])=>`
+    <div class="chart-row">
+      <div class="chart-label" style="color:${c}">${g}</div>
+      <div class="chart-track"><div class="chart-fill" style="width:${pctS(g)}%;background:${c};">${pctS(g)>8?pctS(g)+'%':''}</div></div>
+      <div class="chart-count">${cntSep[g]} người</div>
+    </div>`).join('')}
+    <hr class="divider">
+    <div style="font-size:12px;font-weight:700;color:var(--gray-600);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">Theo đơn vị</div>
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead><tr><th>Đơn vị</th><th>Tổng</th><th>A+</th><th>A</th><th>B</th><th>C</th><th>TĐV A+</th><th>TĐV A</th><th>TĐV B</th><th>TĐV C</th><th>Chờ TĐV</th></tr></thead>
+        <tbody>
+          ${Object.keys(byUnit).sort().map(unit => {
+            const rows=byUnit[unit];
+            const uc={'A+':0,'A':0,'B':0,'C':0};
+            const us={'A+':0,'A':0,'B':0,'C':0};
+            let uP=0;
+            rows.forEach(r=>{if(uc[r.xepLoai]!==undefined)uc[r.xepLoai]++;if(us[r.sepLoai]!==undefined)us[r.sepLoai]++;if(!r.sepLoai)uP++;});
+            return `<tr><td style="font-weight:600;">${unit}</td><td style="text-align:center;font-weight:700;">${rows.length}</td>
+              <td style="text-align:center;">${uc['A+']||'-'}</td><td style="text-align:center;">${uc['A']||'-'}</td>
+              <td style="text-align:center;">${uc['B']||'-'}</td><td style="text-align:center;">${uc['C']||'-'}</td>
+              <td style="text-align:center;">${us['A+']||'-'}</td><td style="text-align:center;">${us['A']||'-'}</td>
+              <td style="text-align:center;">${us['B']||'-'}</td><td style="text-align:center;">${us['C']||'-'}</td>
+              <td style="text-align:center;color:${uP>0?'var(--accent-dark)':'var(--gray-400)'};">${uP||'-'}</td></tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+    <hr class="divider">
+    <button class="btn btn-success" id="hr-export-btn" onclick="exportToSheet()">📥 Xuất báo cáo ra Google Sheets</button>`;
+}
+
+function renderHRDetail(data) {
+  const byUnit = {};
+  data.forEach(r => { if (!byUnit[r.donVi]) byUnit[r.donVi]=[]; byUnit[r.donVi].push(r); });
+  let html = '';
+  Object.keys(byUnit).sort().forEach(unit => {
+    const rows = byUnit[unit];
+    const uc = {'A+':0,'A':0,'B':0,'C':0};
+    rows.forEach(r => { if (uc[r.xepLoai]!==undefined) uc[r.xepLoai]++; });
+    html += `<div class="unit-section">
+      <div class="unit-header">
+        <span>🏢 ${unit} <span style="font-weight:400;color:var(--gray-600);">(${rows.length} người)</span></span>
+        <div class="unit-stats">
+          ${uc['A+']>0?`<span class="unit-stat-badge usb-ap">A+ ${uc['A+']}</span>`:''}
+          ${uc['A']>0?`<span class="unit-stat-badge usb-a">A ${uc['A']}</span>`:''}
+          ${uc['B']>0?`<span class="unit-stat-badge usb-b">B ${uc['B']}</span>`:''}
+          ${uc['C']>0?`<span class="unit-stat-badge usb-c">C ${uc['C']}</span>`:''}
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="history-table">
+          <thead><tr><th>Họ và tên</th><th>Tổng điểm</th><th>Tự xếp loại</th><th>TĐV xếp loại</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            ${rows.map(r=>`<tr>
+              <td style="font-weight:600;">${r.hoTen}</td><td><b>${r.tongDiem}</b></td>
+              <td>${gradeBadge(r.xepLoai)}</td>
+              <td>${r.sepLoai?gradeBadge(r.sepLoai):'<span style="color:var(--gray-400);font-size:12px;">Chờ TĐV</span>'}</td>
+              <td style="font-size:12px;color:var(--gray-600);">${r.sepGhiChu||''}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  });
+  document.getElementById('hr-detail-content').innerHTML = html || '<div class="empty-state">Không có dữ liệu.</div>';
+}
+
+function exportToSheet() {
+  const val = document.getElementById('sel-month-hr').value;
+  if (!val) return alert('Vui lòng chọn tháng trước!');
+  const fmtFull = toMonthFormat(val);
+  const btn = document.getElementById('hr-export-btn');
+  const orig = btn.innerHTML;
+  btn.disabled=true; btn.innerHTML='⏳ Đang xuất...'; btn.style.opacity='.7';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled=false; btn.innerHTML=orig; btn.style.opacity='1';
+      if (res.success) alert(`✅ Đã xuất báo cáo tháng ${fmtFull}\nSheet: "${res.sheetName}"\nTổng: ${res.total} VC-NLĐ\n\nMở Google Sheets để xem.`);
+      else alert('Lỗi: ' + res.message);
+    })
+    .withFailureHandler(function(err) { btn.disabled=false; btn.innerHTML=orig; btn.style.opacity='1'; alert('Lỗi kết nối: ' + err); })
+    .exportReport(fmtFull);
+}
+</script>
+</body>
+</html>
